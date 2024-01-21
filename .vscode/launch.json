@@ -9,10 +9,13 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/src/main.go",
+            "program": "${workspaceFolder}/main.go",
             "args": [
-                "-c",
-                "../res/.config"
+                "create-database",
+                "-id",
+                "e91f95f0469344daa986dafd8ad906b0",
+                "-secret",
+                ""
             ]
         }
     ]

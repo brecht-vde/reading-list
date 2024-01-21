@@ -21,17 +21,17 @@ type rssItem struct {
 	PubDate string `xml:"pubDate"`
 }
 
-func Fetch(url string) (rssFeed, error) {
+func FetchRss(url string) (rssFeed, error) {
 	var feed rssFeed
 	var err error
 
-	data, err := fetch(url)
+	data, err := fetchRss(url)
 
 	if err != nil {
 		return feed, err
 	}
 
-	feed, err = parse(data)
+	feed, err = parseRss(data)
 
 	if err != nil {
 		return feed, err
@@ -40,7 +40,7 @@ func Fetch(url string) (rssFeed, error) {
 	return feed, err
 }
 
-func fetch(url string) ([]byte, error) {
+func fetchRss(url string) ([]byte, error) {
 	var data []byte
 	var err error
 
@@ -66,7 +66,7 @@ func fetch(url string) ([]byte, error) {
 	return data, err
 }
 
-func parse(blob []byte) (rssFeed, error) {
+func parseRss(blob []byte) (rssFeed, error) {
 	var feed rssFeed
 
 	err := xml.Unmarshal(blob, &feed)

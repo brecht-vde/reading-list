@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 		</rss>
 	`)
 
-	feed, err := parse(data)
+	feed, err := parseRss(data)
 
 	if err != nil {
 		t.Errorf("parsing did not succeed")
