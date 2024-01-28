@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Step 1: load history file
-	histories, err := LoadHistories(config.History)
+	histories, err := LoadHistoriesV1(config.History)
 
 	if err != nil {
 		log.Fatalf("history could not be loaded: %v", err)
@@ -126,12 +126,12 @@ func TryParseConfiguration(args []string) (*Configuration, error) {
 }
 
 // Step 1 load & read history file
-type History struct {
+type HistoryV1 struct {
 	Url string   `json:"url"`
 	Ids []string `json:"ids"`
 }
 
-func LoadHistories(path string) ([]History, error) {
+func LoadHistoriesV1(path string) ([]HistoryV1, error) {
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -143,14 +143,14 @@ func LoadHistories(path string) ([]History, error) {
 	return loadHistoriesInternal(file)
 }
 
-func loadHistoriesInternal(reader io.Reader) ([]History, error) {
+func loadHistoriesInternal(reader io.Reader) ([]HistoryV1, error) {
 	bytes, err := io.ReadAll(reader)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var histories []History
+	var histories []HistoryV1
 	err = json.Unmarshal(bytes, &histories)
 
 	if err != nil {
@@ -359,7 +359,7 @@ type Article struct {
 
 // TODO: not liking the uniqueness check, perhaps the initial map should be passed as an argument instead of building it here, not sure yet
 // TODO: the RssFeed object does not indicate which blog it belongs to, so need some sort of property to use as identifier
-func GetUniqueArticles(feeds []RssFeed, histories []History) ([]Article, error) {
+func GetUniqueArticles(feeds []RssFeed, histories []HistoryV1) ([]Article, error) {
 	unique := make(map[string]struct{})
 	var articles []Article
 
