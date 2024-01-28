@@ -58,7 +58,7 @@ func main() {
 
 	// Step 5: map each item into a dao
 	// TODO: get updated histories back
-	articles, err := GetUniqueArticles(feeds, histories)
+	articles, err := GetUniqueArticleV1s(feeds, histories)
 
 	if err != nil {
 		log.Fatalf("articles could not be mapped: %v", err)
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// Step 6: add entries to the notion database
-	err = client.PostArticles(config.NotionDatabaseId, articles)
+	err = client.PostArticleV1s(config.NotionDatabaseId, articles)
 
 	if err != nil {
 		log.Fatalf("articles could not be posted: %v", err)
@@ -347,9 +347,9 @@ func getRssFeedInternal(reader io.Reader) (*RssFeed, error) {
 }
 
 // step 5: make a model to represent articles
-// TODO: do we need Article as "domain" model?
+// TODO: do we need ArticleV1 as "domain" model?
 // TODO: add a tag so we know which blog the article belongs to (some blogs have different authors)
-type Article struct {
+type ArticleV1 struct {
 	Title          string
 	Author         string
 	Guid           string
@@ -359,9 +359,9 @@ type Article struct {
 
 // TODO: not liking the uniqueness check, perhaps the initial map should be passed as an argument instead of building it here, not sure yet
 // TODO: the RssFeed object does not indicate which blog it belongs to, so need some sort of property to use as identifier
-func GetUniqueArticles(feeds []RssFeed, histories []HistoryV1) ([]Article, error) {
+func GetUniqueArticleV1s(feeds []RssFeed, histories []HistoryV1) ([]ArticleV1, error) {
 	unique := make(map[string]struct{})
-	var articles []Article
+	var articles []ArticleV1
 
 	// TODO: move this elsewhere
 	for _, history := range histories {
@@ -384,7 +384,7 @@ func GetUniqueArticles(feeds []RssFeed, histories []HistoryV1) ([]Article, error
 				continue
 			}
 
-			article := Article{}
+			article := ArticleV1{}
 			article.Author = item.Author
 			article.Guid = item.Guid
 			article.Title = item.Title
@@ -451,9 +451,9 @@ type UrlProp struct {
 }
 
 // TODO: better erorr handling, parallel requests?
-func (n *NotionClient) PostArticles(id string, articles []Article) error {
+func (n *NotionClient) PostArticleV1s(id string, articles []ArticleV1) error {
 	for i := 0; i < len(articles); i++ {
-		err := n.postArticleInternal(id, articles[i])
+		err := n.postArticleV1Internal(id, articles[i])
 
 		if err != nil {
 			return err
@@ -463,7 +463,7 @@ func (n *NotionClient) PostArticles(id string, articles []Article) error {
 	return nil
 }
 
-func (n *NotionClient) postArticleInternal(id string, article Article) error {
+func (n *NotionClient) postArticleV1Internal(id string, article ArticleV1) error {
 	url := fmt.Sprintf(`%v/pages/`, n.url)
 
 	request, err := n.newNotionRequest("POST", url)
@@ -472,8 +472,8 @@ func (n *NotionClient) postArticleInternal(id string, article Article) error {
 		return err
 	}
 
-	notionArticle := article.toNotion(id)
-	data, err := json.Marshal(notionArticle)
+	notionArticleV1 := article.toNotion(id)
+	data, err := json.Marshal(notionArticleV1)
 
 	if err != nil {
 		return err
@@ -501,7 +501,7 @@ func (n *NotionClient) postArticleInternal(id string, article Article) error {
 }
 
 // TODO: not sure if this is a good convention in golang?
-func (a *Article) toNotion(id string) Page {
+func (a *ArticleV1) toNotion(id string) Page {
 	return Page{
 		Parent: Parent{
 			DatabaseId: id,
