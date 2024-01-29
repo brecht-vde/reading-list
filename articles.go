@@ -1,3 +1,4 @@
+// articles.go
 package main
 
 import (
@@ -34,7 +35,7 @@ type rssItem struct {
 	Author  string `xml:"creator"`
 }
 
-func GetArticles(blog *Blog) (*[]Article, error) {
+func GetArticles(blog *Blog) ([]Article, error) {
 	response, err := http.Get(blog.Url)
 
 	if err != nil {
@@ -86,7 +87,7 @@ func parseRssFeed(reader io.Reader) (*rssFeed, error) {
 	return &feed, nil
 }
 
-func mapToArticle(feed *rssFeed, blog *Blog) (*[]Article, error) {
+func mapToArticle(feed *rssFeed, blog *Blog) ([]Article, error) {
 	var err error
 	var articles []Article
 
@@ -110,5 +111,5 @@ func mapToArticle(feed *rssFeed, blog *Blog) (*[]Article, error) {
 		articles = append(articles, article)
 	}
 
-	return &articles, err
+	return articles, err
 }

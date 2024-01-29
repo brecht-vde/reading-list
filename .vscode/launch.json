@@ -11,11 +11,10 @@
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
             "args": [
-                "create-database",
-                "-id",
-                "e91f95f0469344daa986dafd8ad906b0",
-                "-secret",
-                ""
+                "-d",
+                "2fac929a17a44678964e8fb9232d2f3c",
+                "-s",
+                "secret_KcOA9MEZPrh5lXGbW7X3VYhg00uwe64OtWbh4hmVgdf"
             ]
         }
     ]

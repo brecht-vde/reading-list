@@ -1,3 +1,4 @@
+// blog.go
 package main
 
 import (
@@ -13,7 +14,7 @@ type Blog struct {
 	Url string
 }
 
-func Load(path string) ([]Blog, error) {
+func LoadBlogs(path string) ([]Blog, error) {
 	file, err := os.Open(path)
 
 	if err != nil {
