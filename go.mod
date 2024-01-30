@@ -1,3 +1,3 @@
-module github.com/brecht-vde/reading-list
+module reading-list
 
 go 1.21.5

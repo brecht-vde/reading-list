@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -14,7 +15,7 @@ type Blog struct {
 	Url string
 }
 
-func LoadBlogs(path string) ([]Blog, error) {
+func LoadBlogs(path string) ([]*Blog, error) {
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -26,28 +27,39 @@ func LoadBlogs(path string) ([]Blog, error) {
 	return load(file)
 }
 
-func load(r io.Reader) ([]Blog, error) {
-	data, err := io.ReadAll(r)
+func load(r io.Reader) ([]*Blog, error) {
+	var err error
+	scanner := bufio.NewScanner(r)
 
-	if err != nil {
-		return nil, err
-	}
-
-	content := string(data)
-	lines := strings.Split(content, "\n")
-
-	if lines == nil || len(lines) <= 1 {
+	if !scanner.Scan() {
 		return nil, fmt.Errorf("file does not contain content")
 	}
 
-	headers := strings.Split(lines[0], ",")
+	headers := strings.Split(scanner.Text(), ",")
 	err = validateHeaders(headers)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return parseValues(lines[1:])
+	var blogs []*Blog
+
+	for scanner.Scan() {
+		blog, parseErr := parseValue(scanner.Text())
+
+		if parseErr != nil {
+			err = errors.Join(err, parseErr)
+			continue
+		}
+
+		blogs = append(blogs, blog)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return blogs, nil
 }
 
 func validateHeaders(headers []string) error {
@@ -66,32 +78,20 @@ func validateHeaders(headers []string) error {
 	return nil
 }
 
-func parseValues(lines []string) ([]Blog, error) {
-	var err error
-	var blogs []Blog
-
-	for i, line := range lines {
-		values := strings.Split(line, ",")
-		validationErr := validateValues(values)
-
-		if validationErr != nil {
-			err = errors.Join(fmt.Errorf("invalid format at index '%v', %v", i, validationErr))
-			continue
-		}
-
-		blog := Blog{
-			Tag: values[0],
-			Url: values[1],
-		}
-
-		blogs = append(blogs, blog)
-	}
+func parseValue(line string) (*Blog, error) {
+	values := strings.Split(line, ",")
+	err := validateValues(values)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return blogs, nil
+	blog := Blog{
+		Tag: values[0],
+		Url: values[1],
+	}
+
+	return &blog, nil
 }
 
 func validateValues(values []string) error {

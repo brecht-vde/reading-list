@@ -9,7 +9,7 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
+            "program": "${workspaceFolder}",
             "args": [
                 "-d",
                 "2fac929a17a44678964e8fb9232d2f3c",

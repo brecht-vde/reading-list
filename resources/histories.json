@@ -1,10 +1,10 @@
 [
   {
-    "url": "https://blog.pragmaticengineer.com/rss/",
+    "tag": "pragmaticengineer",
     "ids": ["6537ec4c7e6a300001f0b6d5"]
   },
   {
-    "url": "https://medium.com/feed/square-corner-blog",
+    "tag": "square",
     "ids": ["https://medium.com/p/5f0eaa1d341e"]
   }
 ]

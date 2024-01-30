@@ -32,7 +32,7 @@ func main() {
 	var articles map[string][]Article = make(map[string][]Article)
 
 	for _, blog := range blogs {
-		article, subErr := GetArticles(&blog)
+		article, subErr := GetArticles(blog)
 
 		if subErr != nil {
 			err = errors.Join(fmt.Errorf("could not fetch articles for blog %v: %v", blog.Tag, subErr))

@@ -9,7 +9,7 @@ import (
 func Test_loadBlog(t *testing.T) {
 	input := "tag,url\nblog,https://blog.test"
 
-	expected := []Blog{
+	expected := []*Blog{
 		{
 			Tag: "blog",
 			Url: "https://blog.test",
