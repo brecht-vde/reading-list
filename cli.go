@@ -57,7 +57,7 @@ func validateFlags(fs *flag.FlagSet) error {
 
 	fs.VisitAll(func(f *flag.Flag) {
 		if f.Value.String() == "" {
-			err = errors.Join(fmt.Errorf("required argument '%v' is not defined", f.Name))
+			err = errors.Join(err, fmt.Errorf("required argument '%v' is not defined", f.Name))
 		}
 	})
 

@@ -13,7 +13,7 @@ type History struct {
 	Ids []string `json:"ids"`
 }
 
-func LoadHistories(path string) ([]History, error) {
+func LoadHistories(path string) ([]*History, error) {
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -25,14 +25,14 @@ func LoadHistories(path string) ([]History, error) {
 	return loadHistories(file)
 }
 
-func loadHistories(r io.Reader) ([]History, error) {
+func loadHistories(r io.Reader) ([]*History, error) {
 	data, err := io.ReadAll(r)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var histories []History
+	var histories []*History
 	err = json.Unmarshal(data, &histories)
 
 	if err != nil {
@@ -42,8 +42,8 @@ func loadHistories(r io.Reader) ([]History, error) {
 	return histories, nil
 }
 
-func SaveHistories(path string, histories []History) error {
-	file, err := os.Open(path)
+func SaveHistories(path string, histories []*History) error {
+	file, err := os.Create(path)
 
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func SaveHistories(path string, histories []History) error {
 	return saveHistories(file, histories)
 }
 
-func saveHistories(w io.Writer, histories []History) error {
+func saveHistories(w io.Writer, histories []*History) error {
 	data, err := json.Marshal(histories)
 
 	if err != nil {

@@ -42,7 +42,7 @@ func Test_LoadHistories(t *testing.T) {
 }
 
 func Test_WriteHistories(t *testing.T) {
-	histories := []History{
+	histories := []*History{
 		{
 			Tag: "test",
 			Ids: []string{

@@ -58,6 +58,7 @@ func GetArticles(blog *Blog) ([]Article, error) {
 	return mapToArticle(feed, blog)
 }
 
+// can be reused
 func parseFailure(reader io.Reader) error {
 	data, err := io.ReadAll(reader)
 
@@ -92,10 +93,10 @@ func mapToArticle(feed *rssFeed, blog *Blog) ([]Article, error) {
 	var articles []Article
 
 	for _, item := range feed.Channel.Items {
-		date, dateErr := time.Parse(time.RFC1123, item.PubDate)
+		date, dateErr := tryParseDate(item.PubDate)
 
 		if dateErr != nil {
-			err = errors.Join(fmt.Errorf("could not parse pub date for blog: %v, item: %v", blog.Tag, item.Guid))
+			err = errors.Join(err, fmt.Errorf("could not parse pub date for blog: %v, item: %v", blog.Tag, item.Guid))
 			continue
 		}
 
@@ -104,7 +105,7 @@ func mapToArticle(feed *rssFeed, blog *Blog) ([]Article, error) {
 			Title:          item.Title,
 			Author:         item.Author,
 			Url:            item.Link,
-			PublishingDate: date,
+			PublishingDate: *date,
 			Guid:           item.Guid,
 		}
 
@@ -112,4 +113,20 @@ func mapToArticle(feed *rssFeed, blog *Blog) ([]Article, error) {
 	}
 
 	return articles, err
+}
+
+func tryParseDate(input string) (*time.Time, error) {
+	date, err := time.Parse(time.RFC1123, input)
+
+	if err == nil {
+		return &date, nil
+	}
+
+	date, err = time.Parse("Mon, 2 Jan 2006 15:04:05 +0200", input)
+
+	if err == nil {
+		return &date, nil
+	}
+
+	return nil, err
 }

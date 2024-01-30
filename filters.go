@@ -13,14 +13,14 @@ func FilterArticles(articles *[]Article, history *History) {
 	*articles = temp
 }
 
-func FindHistory(histories *[]History, tag string) History {
-	for _, history := range *histories {
+func FindHistory(histories []*History, tag string) *History {
+	for _, history := range histories {
 		if history.Tag == tag {
 			return history
 		}
 	}
 
-	return History{}
+	return &History{}
 }
 
 func contains(ids []string, id string) bool {
