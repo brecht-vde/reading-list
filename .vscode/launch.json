@@ -12,9 +12,10 @@
             "program": "${workspaceFolder}",
             "args": [
                 "-d",
-                "2fac929a17a44678964e8fb9232d2f3c",
+                "082e3c239e464a45b5f82cdcc3668265",
                 "-s",
-                "secret_KcOA9MEZPrh5lXGbW7X3VYhg00uwe64OtWbh4hmVgdf"
+                "secret_KcOA9MEZPrh5lXGbW7X3VYhg00uwe64OtWbh4hmVgdf",
+                "-t=false"
             ]
         }
     ]

@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
+	"math"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -27,11 +31,11 @@ type Parent struct {
 }
 
 type Properties struct {
-	Title          TitleProp `json:"Title"`
-	Author         TextProp  `json:"Author"`
-	Guid           TextProp  `json:"Guid"`
-	PublishingDate DateProp  `json:"Publishing Date"`
-	Url            UrlProp   `json:"Url"`
+	Blog           SelectProp      `json:"Blog"`
+	Title          TitleProp       `json:"Title"`
+	PublishingDate DateProp        `json:"Publishing Date"`
+	Categories     MultiSelectProp `json:"Categories"`
+	Url            UrlProp         `json:"Url"`
 }
 
 type Text struct {
@@ -62,6 +66,18 @@ type UrlProp struct {
 	Url string `json:"url"`
 }
 
+type SelectProp struct {
+	Select SelectPropType `json:"select"`
+}
+
+type SelectPropType struct {
+	Name string `json:"name"`
+}
+
+type MultiSelectProp struct {
+	MultiSelect []SelectPropType `json:"multi_select"`
+}
+
 func NewNotionClient(url, secret, version, database string) *NotionClient {
 	transport := &http.Transport{
 		MaxIdleConns:    10,
@@ -82,6 +98,21 @@ func NewNotionClient(url, secret, version, database string) *NotionClient {
 	}
 }
 
+func (n *NotionClient) Save(items <-chan RssItem, errs chan<- error) {
+	var wg sync.WaitGroup
+
+	for item := range items {
+		wg.Add(1)
+		go func(item RssItem) {
+			defer wg.Done()
+			n.processItem(item, errs)
+			log.Printf("saved item: %v\n", item.Title)
+		}(item)
+	}
+
+	wg.Wait()
+}
+
 func (n *NotionClient) newNotionRequest(method, url string, body io.Reader) (*http.Request, error) {
 	request, err := http.NewRequest(method, url, body)
 
@@ -96,26 +127,29 @@ func (n *NotionClient) newNotionRequest(method, url string, body io.Reader) (*ht
 	return request, nil
 }
 
-func (n *NotionClient) SaveArticle(article *Article) error {
+func (n *NotionClient) processItem(item RssItem, errors chan<- error) {
 	url := fmt.Sprintf("%v/pages", n.url)
-	page := mapToNotion(article, n.database)
+	page := mapItem(item, n.database)
 
 	data, err := json.Marshal(page)
 
 	if err != nil {
-		return err
+		errors <- err
+		return
 	}
 
 	request, err := n.newNotionRequest("POST", url, bytes.NewReader(data))
 
 	if err != nil {
-		return err
+		errors <- err
+		return
 	}
 
-	response, err := n.client.Do(request)
+	response, err := n.withRetry(request)
 
 	if err != nil {
-		return err
+		errors <- fmt.Errorf("%v: status: %v", err, response.StatusCode)
+		return
 	}
 
 	defer response.Body.Close()
@@ -123,57 +157,95 @@ func (n *NotionClient) SaveArticle(article *Article) error {
 	message, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		return err
+		errors <- err
+		return
 	}
 
 	if response.StatusCode != 200 {
-		return fmt.Errorf("invalid status code for saving article: %v", string(message))
+		errors <- fmt.Errorf("%v - %v: %v\n%v", response.StatusCode, item.Blog, string(message), string(data))
+		return
 	}
-
-	return nil
 }
 
-func mapToNotion(article *Article, id string) Page {
+func (n *NotionClient) withRetry(request *http.Request) (*http.Response, error) {
+	for i := 1; i < 6; i++ {
+		response, err := n.client.Do(request)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if response.StatusCode >= 400 {
+			backoff := math.Pow(2, float64(i))
+			time.Sleep(time.Second * time.Duration(int(backoff)))
+			continue
+		}
+
+		return response, nil
+	}
+
+	return nil, fmt.Errorf("still failed after 5 retries")
+}
+
+func mapItem(item RssItem, db string) Page {
 	return Page{
 		Parent: Parent{
-			DatabaseId: id,
+			DatabaseId: db,
 		},
 		Properties: Properties{
 			Title: TitleProp{
 				Title: []PageRichText{
 					{
 						Text: Text{
-							Content: article.Title,
+							Content: sanitize(item.Title),
 						},
 					},
 				},
 			},
-			Author: TextProp{
-				RichText: []PageRichText{
-					{
-						Text: Text{
-							Content: article.Author,
-						},
-					},
-				},
-			},
-			Guid: TextProp{
-				RichText: []PageRichText{
-					{
-						Text: Text{
-							Content: article.Guid,
-						},
-					},
+			Blog: SelectProp{
+				Select: SelectPropType{
+					Name: sanitize(item.Blog),
 				},
 			},
 			PublishingDate: DateProp{
 				Date: DatePropType{
-					Start: article.PublishingDate.Format("2006-01-02"),
+					Start: mapPubDate(item.PubDate),
 				},
 			},
+			Categories: MultiSelectProp{
+				MultiSelect: mapCategories(item.Categories),
+			},
 			Url: UrlProp{
-				Url: article.Url,
+				Url: item.Link,
 			},
 		},
 	}
+}
+
+func mapCategories(categories []string) []SelectPropType {
+	multiselect := make([]SelectPropType, 0)
+
+	for _, c := range categories {
+		prop := SelectPropType{
+			Name: sanitize(c),
+		}
+
+		multiselect = append(multiselect, prop)
+	}
+
+	return multiselect
+}
+
+func sanitize(item string) string {
+	return strings.ReplaceAll(item, ",", " ")
+}
+
+func mapPubDate(pubDate string) string {
+	date, err := time.Parse(time.RFC1123, pubDate)
+
+	if err != nil {
+		return ""
+	}
+
+	return date.Format("2006-01-02T15:04:05Z07:00")
 }

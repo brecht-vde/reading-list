@@ -1,7 +1,7 @@
-curl --location --request PATCH '$NOTION_API_URL/databases/$NOTION_DATABASE_ID' \
---header 'Notion-Version: $NOTION_API_VERSION' \
---header 'Authorization: $NOTION_API_SECRET' \
---header 'Content-Type: application/json' \
+curl --location --request PATCH "$NOTION_API_URL/databases/$NOTION_DATABASE_ID" \
+--header "Notion-Version: $NOTION_API_VERSION" \
+--header "Authorization: $NOTION_API_SECRET" \
+--header "Content-Type: application/json" \
 --data '{
     "title": [
         {
@@ -11,10 +11,19 @@ curl --location --request PATCH '$NOTION_API_URL/databases/$NOTION_DATABASE_ID' 
         }
     ],
     "properties": {
-        "Author": {
-            "name": "Author",
-            "type": "rich_text",
-            "rich_text": {}
+        "Blog": {
+            "name": "Blog",
+            "type": "select",
+            "select": {
+                "options": []
+            }
+        },
+        "Categories": {
+            "name": "Categories",
+            "type": "multi_select",
+            "multi_select": {
+                "options": []
+            }
         },
         "Url": {
             "name": "Url",
@@ -41,11 +50,6 @@ curl --location --request PATCH '$NOTION_API_URL/databases/$NOTION_DATABASE_ID' 
                     }
                 ]
             }
-        },
-        "Guid": {
-            "name": "Guid",
-            "type": "rich_text",
-            "rich_text": {}
         },
         "Name": {
             "name": "Title"

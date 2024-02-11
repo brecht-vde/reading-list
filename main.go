@@ -1,79 +1,69 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
+	"sync"
 )
 
 func main() {
-	args, err := ParseArguments(os.Args[1:])
+	arg, err := ParseArguments(os.Args[1:])
+	handleErr(err)
 
+	var wg sync.WaitGroup
+
+	urls := make(chan string)
+	errs1 := make(chan error)
+	wg.Add(1)
+	go func(path string) {
+		defer wg.Done()
+		defer close(urls)
+		defer close(errs1)
+		Read(path, urls, errs1)
+	}(arg.Config)
+
+	wg.Add(1)
+	go printErrs(errs1, &wg)
+
+	items := make(chan RssItem)
+	errs2 := make(chan error)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer close(items)
+		defer close(errs2)
+		Fetch(arg.Timed, urls, items, errs2)
+	}()
+
+	wg.Add(1)
+	go printErrs(errs2, &wg)
+
+	errs3 := make(chan error)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer close(errs3)
+		client := NewNotionClient(arg.Url, arg.Secret, arg.Version, arg.Database)
+		client.Save(items, errs3)
+	}()
+
+	wg.Add(1)
+	go printErrs(errs3, &wg)
+
+	wg.Wait()
+}
+
+func printErrs(errs <-chan error, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for err := range errs {
+		log.Printf("error occurred: %v\n", err)
+	}
+}
+
+func handleErr(err error) {
 	if err != nil {
-		log.Fatalf("could not parse arguments: %v", err)
-		os.Exit(-1)
-	}
-
-	histories, err := LoadHistories(args.Histories)
-
-	if err != nil {
-		log.Fatalf("could not load histories: %v", err)
-		os.Exit(-1)
-	}
-
-	blogs, err := LoadBlogs(args.Blogs)
-
-	if err != nil {
-		log.Fatalf("could not load blogs: %v", err)
-		os.Exit(-1)
-	}
-
-	var articles map[string][]Article = make(map[string][]Article)
-
-	for _, blog := range blogs {
-		article, subErr := GetArticles(blog)
-
-		if subErr != nil {
-			err = errors.Join(err, fmt.Errorf("could not fetch articles for blog %v: %v", blog.Tag, subErr))
-			continue
-		}
-
-		history := FindHistory(histories, blog.Tag)
-		FilterArticles(&article, history)
-		articles[blog.Tag] = article
-	}
-
-	if err != nil {
-		log.Fatalf("could not load all articles %v", err)
-	}
-
-	client := NewNotionClient(args.Url, args.Secret, args.Version, args.Database)
-
-	var multiErrs error
-
-	for tag, blogArticles := range articles {
-		history := FindHistory(histories, tag)
-
-		for _, blogArticle := range blogArticles {
-			blogErr := client.SaveArticle(&blogArticle)
-
-			if blogErr != nil {
-				multiErrs = errors.Join(multiErrs, blogErr)
-				continue
-			}
-
-			history.Ids = append(history.Ids, blogArticle.Guid)
-		}
-	}
-
-	if multiErrs != nil {
-		log.Fatalf("could not save all articles %v", multiErrs)
-	}
-
-	err = SaveHistories(args.Histories, histories)
-
-	if err != nil {
-		log.Fatalf("couldn't save histories: %v", err)
+		log.Printf("error occurred: %v\n", err)
+		os.Exit(1)
 	}
 }

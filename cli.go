@@ -7,13 +7,12 @@ import (
 )
 
 type Arguments struct {
-	Url       string
-	Secret    string
-	Version   string
-	Database  string
-	Histories string
-	Blogs     string
-	Year      int
+	Url      string
+	Secret   string
+	Version  string
+	Database string
+	Config   string
+	Timed    bool
 }
 
 func ParseArguments(args []string) (*Arguments, error) {
@@ -23,9 +22,8 @@ func ParseArguments(args []string) (*Arguments, error) {
 	var secret = fs.String("s", "", "Notion API integration secret e.g. '-s secret_...'")
 	var version = fs.String("v", "2022-06-28", "Notion API version e.g. '-v 2022-06-28', default value '2022-06-28'")
 	var database = fs.String("d", "", "Notion Database ID e.g. '-d 00000000000000000000000000000000'")
-	var histories = fs.String("h", "./resources/histories.json", "histories file path e.g. '-h ./resources/histories.json', default value './resources/histories.json")
-	var blogs = fs.String("b", "./resources/blogs.csv", "blogs file path e.g. '-b ./resources/blogs.csv', default value './resources/blogs.csv'")
-	var year = fs.Int("y", 0, "inclusive cut off year for fetching articles e.g. '-y 2023', articles published in 2023 or later will be synchronized")
+	var config = fs.String("c", "./resources/config.csv", "config file path e.g. '-b ./resources/config.csv', default value './resources/config.csv'")
+	var timed = fs.Bool("t", true, "Limits the articles fetched to today's date, default value true")
 
 	err := fs.Parse(args)
 
@@ -40,13 +38,12 @@ func ParseArguments(args []string) (*Arguments, error) {
 	}
 
 	arguments := Arguments{
-		Url:       *url,
-		Secret:    *secret,
-		Version:   *version,
-		Database:  *database,
-		Histories: *histories,
-		Blogs:     *blogs,
-		Year:      *year,
+		Url:      *url,
+		Secret:   *secret,
+		Version:  *version,
+		Database: *database,
+		Config:   *config,
+		Timed:    *timed,
 	}
 
 	return &arguments, nil
