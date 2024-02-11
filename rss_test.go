@@ -77,7 +77,7 @@ func Test_processFeed(t *testing.T) {
 
 	var items = make(chan RssItem, 1)
 
-	processFeed(true, feed, items)
+	processFeed(false, feed, items)
 
 	item := <-items
 
