@@ -100,7 +100,7 @@ func NewNotionClient(url, secret, version, database string) *NotionClient {
 
 func (n *NotionClient) Save(items <-chan RssItem, errs chan<- error) {
 	var wg sync.WaitGroup
-	rateLimiter := time.Tick(time.Second / 3)
+	rateLimiter := time.Tick(time.Second / 2)
 
 	for item := range items {
 		wg.Add(1)
