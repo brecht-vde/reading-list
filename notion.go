@@ -148,7 +148,7 @@ func (n *NotionClient) processItem(item RssItem, errors chan<- error) {
 	response, err := n.withRetry(request)
 
 	if err != nil {
-		errors <- fmt.Errorf("%v: status: %v", err, response.StatusCode)
+		errors <- fmt.Errorf("%v: ", err)
 		return
 	}
 

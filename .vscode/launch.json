@@ -12,9 +12,9 @@
             "program": "${workspaceFolder}",
             "args": [
                 "-d",
-                "082e3c239e464a45b5f82cdcc3668265",
+                "<some_db>",
                 "-s",
-                "secret_KcOA9MEZPrh5lXGbW7X3VYhg00uwe64OtWbh4hmVgdf",
+                "<some_key>",
                 "-t=false"
             ]
         }
