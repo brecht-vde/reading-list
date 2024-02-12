@@ -28,4 +28,4 @@ jobs:
       run: go build -v ./...
 
     - name: Run
-      run: ./reading-list -t=false -s $NOTION_API_SECRET -d $NOTION_API_DATABASE_ID
+      run: ./reading-list -t=false -s $NOTION_API_SECRET -d $NOTION_DATABASE_ID
