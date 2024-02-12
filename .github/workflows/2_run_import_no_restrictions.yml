@@ -1,0 +1,31 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: "Step 2: run initial import without date restrictions (optional)"
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NOTION_API_URL: ${{ secrets.NOTION_API_URL }}
+      NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+      NOTION_API_SECRET: ${{ secrets.NOTION_API_SECRET }}
+      
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Run
+      run: ./reading-list -t=false -s $NOTION_API_SECRET -d $NOTION_API_DATABASE_ID
