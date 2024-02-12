@@ -106,6 +106,10 @@ func (n *NotionClient) Save(items <-chan RssItem, errs chan<- error) {
 		wg.Add(1)
 		go func(item RssItem) {
 			defer wg.Done()
+
+			pauseMs := rand.Intn(500)
+			time.Sleep(time.Millisecond * time.Duration(pauseMs+500))
+
 			n.processItem(item, errs)
 			log.Printf("saved item: %v\n", item.Title)
 		}(item)
@@ -182,8 +186,7 @@ func (n *NotionClient) withRetry(request *http.Request) (*http.Response, error) 
 
 		if response.StatusCode >= 400 {
 			backoff := math.Pow(2, float64(i))
-			jitter := rand.Intn(10)
-			time.Sleep(time.Second * time.Duration(int(backoff)+jitter))
+			time.Sleep(time.Second * time.Duration(int(backoff)))
 			continue
 		}
 
