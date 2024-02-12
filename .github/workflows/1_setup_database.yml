@@ -1,0 +1,78 @@
+name: setup Notion database
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-notion-database:
+    runs-on: ubuntu-latest
+    env:
+      NOTION_API_URL: ${{ secrets.NOTION_API_URL }}
+      NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      NOTION_API_VERSION: ${{ secrets.NOTION_API_VERSION }}
+      NOTION_API_SECRET: ${{ secrets.NOTION_API_SECRET }}
+
+    steps:    
+    - name: install curl
+      run: sudo apt update && sudo apt install -y curl
+    - name: checkout code
+      run: |
+        curl --location --request PATCH "$NOTION_API_URL/databases/$NOTION_DATABASE_ID" \
+        --header "Notion-Version: $NOTION_API_VERSION" \
+        --header "Authorization: $NOTION_API_SECRET" \
+        --header "Content-Type: application/json" \
+        --data '{
+            "title": [
+                {
+                    "text": {
+                        "content": "Reading List"
+                    }
+                }
+            ],
+            "properties": {
+                "Blog": {
+                    "name": "Blog",
+                    "type": "select",
+                    "select": {
+                        "options": []
+                    }
+                },
+                "Categories": {
+                    "name": "Categories",
+                    "type": "multi_select",
+                    "multi_select": {
+                        "options": []
+                    }
+                },
+                "Url": {
+                    "name": "Url",
+                    "type": "url",
+                    "url": {}
+                },
+                "Publishing Date": {
+                    "name": "Publish Date",
+                    "type": "date",
+                    "date": {}
+                },
+                "Status": {
+                    "name": "Status",
+                    "type": "select",
+                    "select": {
+                        "options": [
+                            {
+                                "name": "read",
+                                "color": "green"
+                            },
+                            {
+                                "name": "unread",
+                                "color": "blue"
+                            }
+                        ]
+                    }
+                },
+                "Name": {
+                    "name": "Title"
+                },
+                "Tags": null
+            }
+        }'
