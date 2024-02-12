@@ -29,6 +29,10 @@
 
 10. The [3_run_daily.yml](./.github/workflows/3_run_daily.yml) action will run daily at midnight and will import any articles which were published in the last 24 hours. 
 
+If all goes well, you'll have a database in Notion filled with articles to read and you can set/change status as you wish:
+
+![step4](./resources/4-result.png)
+
 ## What's the point of this
 
 I'm on a journey to learn Go & side projects are the best way for me to do so. 
