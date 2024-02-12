@@ -1,4 +1,4 @@
-name: setup Notion database
+name: "Step 1: setup Notion database"
 
 on:
   workflow_dispatch:
