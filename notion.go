@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"math"
-	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
@@ -101,14 +100,13 @@ func NewNotionClient(url, secret, version, database string) *NotionClient {
 
 func (n *NotionClient) Save(items <-chan RssItem, errs chan<- error) {
 	var wg sync.WaitGroup
+	rateLimiter := time.Tick(time.Second / 3)
 
 	for item := range items {
 		wg.Add(1)
 		go func(item RssItem) {
 			defer wg.Done()
-
-			pauseMs := rand.Intn(500)
-			time.Sleep(time.Millisecond * time.Duration(pauseMs+500))
+			<-rateLimiter
 
 			n.processItem(item, errs)
 			log.Printf("saved item: %v\n", item.Title)
