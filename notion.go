@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
@@ -181,7 +182,8 @@ func (n *NotionClient) withRetry(request *http.Request) (*http.Response, error) 
 
 		if response.StatusCode >= 400 {
 			backoff := math.Pow(2, float64(i))
-			time.Sleep(time.Second * time.Duration(int(backoff)))
+			jitter := rand.Intn(10)
+			time.Sleep(time.Second * time.Duration(int(backoff)+jitter))
 			continue
 		}
 
