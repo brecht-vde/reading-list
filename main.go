@@ -59,6 +59,8 @@ func printErrs(errs <-chan error, wg *sync.WaitGroup) {
 	for err := range errs {
 		log.Printf("error occurred: %v\n", err)
 	}
+
+	os.Exit(1)
 }
 
 func handleErr(err error) {
