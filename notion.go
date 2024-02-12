@@ -168,11 +168,15 @@ func (n *NotionClient) processItem(item RssItem, errors chan<- error) {
 }
 
 func (n *NotionClient) withRetry(request *http.Request) (*http.Response, error) {
-	for i := 1; i < 6; i++ {
+	for i := 1; i <= 6; i++ {
 		response, err := n.client.Do(request)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if i == 6 {
+			return response, nil
 		}
 
 		if response.StatusCode >= 400 {
@@ -184,7 +188,7 @@ func (n *NotionClient) withRetry(request *http.Request) (*http.Response, error) 
 		return response, nil
 	}
 
-	return nil, fmt.Errorf("still failed after 5 retries")
+	return nil, fmt.Errorf("failed completely")
 }
 
 func mapItem(item RssItem, db string) Page {
