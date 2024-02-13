@@ -113,7 +113,9 @@ func shouldInclude(pubDate string) bool {
 		return false
 	}
 
-	if time.Since(date).Hours() >= 24 {
+	since := time.Since(date).Hours()
+
+	if since > 24 || since < 0 {
 		return false
 	}
 
